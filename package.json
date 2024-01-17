@@ -28,6 +28,7 @@
   },
   "type": "module",
   "dependencies": {
+    "@sveltejs/adapter-vercel": "^4.0.5",
     "svelte-icons": "^2.1.0"
   }
 }
