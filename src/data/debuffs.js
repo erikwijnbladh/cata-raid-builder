@@ -88,7 +88,7 @@ export const debuffs = [
 			'Rogue - Subtlety',
 			'Mage - Arcane',
 			'Death Knight - Blood',
-			'Deadth Knight - Frost',
+			'Death Knight - Frost',
 			'Death Knight - Unholy',
 			'Warlock - Demonology',
 			'Warlock - Destruction',

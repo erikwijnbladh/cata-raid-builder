@@ -1,18 +1,14 @@
-<script>
+<script lang="ts">
 	import '../app.postcss';
-	import {
-		AppShell,
-		AppBar,
-		AppRail,
-		AppRailTile,
-		AppRailAnchor,
-		LightSwitch
-	} from '@skeletonlabs/skeleton';
+	import { AppShell, AppBar, LightSwitch } from '@skeletonlabs/skeleton';
 	import { initializeStores } from '@skeletonlabs/skeleton';
 	import Footer from '../components/+footer.svelte';
 	initializeStores();
+	import { Toast, getToastStore } from '@skeletonlabs/skeleton';
+	import type { ToastSettings, ToastStore } from '@skeletonlabs/skeleton';
 </script>
 
+<Toast />
 <AppShell scrollbarGutter="stable">
 	<svelte:fragment slot="header">
 		<AppBar class="border-b border-tertiary-800">
