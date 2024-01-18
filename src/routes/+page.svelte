@@ -92,6 +92,8 @@
 			alert('Invalid JSON format. Please check your data.');
 		}
 	}
+	import Tooltip from '../components/+Tooltip.svelte';
+	import TooltipContent from '../components/+TooltipContent.svelte';
 </script>
 
 <div class="flex flex-col md:flex-row mx-4 md:mx-20 justify-between gap-20">
@@ -165,17 +167,32 @@
 			<AccordionItem open>
 				<svelte:fragment slot="summary">Buffs</svelte:fragment>
 				<svelte:fragment slot="content">
-					<div class="grid grid-cols-2 md:grid-cols-3 gap-8 py-4">
+					<div class="grid grid-cols-2 md:grid-cols-3 gap-8 py-4 relative">
 						{#each buffs as buff}
-							<div title="Providers: {buff.displayText}">
-								{#if buff.count == 0}
-									<span>⚠️</span>
-									{buff.name}: {buff.count}
-								{:else}
-									<span>&#x1F50D;</span>
-									<!-- Magnifying glass icon -->
-									{buff.name}: {buff.count}
-								{/if}
+							<div class="cursor-pointer">
+								<Tooltip>
+									<TooltipContent>
+										<div class="card rounded-lg py-2 px-3">
+											<p class="text-sm mb-2">Providers:</p>
+											{#each Object.entries(buff.providerIcons) as [provider, iconURL]}
+												<div class="flex items-center mb-1">
+													<img src={iconURL} alt={provider} class="h-5 w-5 mr-2 rounded-full" />
+													<span class="text-sm font-semibold">{provider}</span>
+												</div>
+											{/each}
+										</div>
+									</TooltipContent>
+									<!-- Normal content -->
+									<div>
+										{#if buff.count == 0}
+											<span>⚠️</span>
+											{buff.name}: {buff.count}
+										{:else}
+											<span>&#x1F50D;</span>
+											{buff.name}: {buff.count}
+										{/if}
+									</div>
+								</Tooltip>
 							</div>
 						{/each}
 					</div>
@@ -186,15 +203,30 @@
 				<svelte:fragment slot="content">
 					<div class="grid grid-cols-2 md:grid-cols-3 gap-8 py-4">
 						{#each debuffs as debuff}
-							<div title="Providers: {debuff.displayText}">
-								{#if debuff.count == 0}
-									<span>⚠️</span>
-									{debuff.name}: {debuff.count}
-								{:else}
-									<span>&#x1F50D;</span>
-									<!-- Magnifying glass icon -->
-									{debuff.name}: {debuff.count}
-								{/if}
+							<div class="cursor-pointer">
+								<Tooltip>
+									<TooltipContent>
+										<div class="card rounded-lg py-2 px-3">
+											<p class="text-sm mb-2">Providers:</p>
+											{#each Object.entries(debuff.providerIcons) as [provider, iconURL]}
+												<div class="flex items-center mb-1">
+													<img src={iconURL} alt={provider} class="h-5 w-5 mr-2 rounded-full" />
+													<span class="text-sm font-semibold">{provider}</span>
+												</div>
+											{/each}
+										</div>
+									</TooltipContent>
+									<!-- Normal content -->
+									<div>
+										{#if debuff.count == 0}
+											<span>⚠️</span>
+											{debuff.name}: {debuff.count}
+										{:else}
+											<span>&#x1F50D;</span>
+											{debuff.name}: {debuff.count}
+										{/if}
+									</div>
+								</Tooltip>
 							</div>
 						{/each}
 					</div>
@@ -205,15 +237,30 @@
 				<svelte:fragment slot="content">
 					<div class="grid grid-cols-2 md:grid-cols-3 gap-8 py-4">
 						{#each cooldowns as cooldown}
-							<div title="Providers: {cooldown.displayText}">
-								{#if cooldown.count == 0}
-									<span>⚠️</span>
-									{cooldown.name}: {cooldown.count}
-								{:else}
-									<span>&#x1F50D;</span>
-									<!-- Magnifying glass icon -->
-									{cooldown.name}: {cooldown.count}
-								{/if}
+							<div class="cursor-pointer">
+								<Tooltip>
+									<TooltipContent>
+										<div class="card rounded-lg py-2 px-3">
+											<p class="text-sm mb-2">Providers:</p>
+											{#each Object.entries(cooldown.providerIcons) as [provider, iconURL]}
+												<div class="flex items-center mb-1">
+													<img src={iconURL} alt={provider} class="h-5 w-5 mr-2 rounded-full" />
+													<span class="text-sm font-semibold">{provider}</span>
+												</div>
+											{/each}
+										</div>
+									</TooltipContent>
+									<!-- Normal content -->
+									<div>
+										{#if cooldown.count == 0}
+											<span>⚠️</span>
+											{cooldown.name}: {cooldown.count}
+										{:else}
+											<span>&#x1F50D;</span>
+											{cooldown.name}: {cooldown.count}
+										{/if}
+									</div>
+								</Tooltip>
 							</div>
 						{/each}
 					</div>
