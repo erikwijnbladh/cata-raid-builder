@@ -1,11 +1,14 @@
 // utils.js
-export function processItems(items, wowClasses) {
-	let wowClassesCopy = JSON.parse(JSON.stringify(wowClasses));
-
+export function processItems(items, wowClasses, raidSetup) {
 	return items.map((item) => {
-		let classSpecificItems = {};
+		// Count how many times each item is provided by the raid setup
+		const count = raidSetup.reduce((acc, player) => {
+			const playerSpecLabel = player.classSpec ? `${player.classSpec.label}` : '';
+			return acc + (item.providers.includes(playerSpecLabel) ? 1 : 0);
+		}, 0);
 
 		// Group specializations by class
+		let classSpecificItems = {};
 		item.providers.forEach((provider) => {
 			const [className, specName] = provider.split(' - ');
 			if (!classSpecificItems[className]) {
@@ -17,7 +20,7 @@ export function processItems(items, wowClasses) {
 		// Determine the display text for each item
 		let displayText = [];
 		for (const [className, specs] of Object.entries(classSpecificItems)) {
-			const allSpecs = wowClassesCopy[className].map((specObj) => specObj.name);
+			const allSpecs = wowClasses[className].specs.map((specObj) => specObj.name);
 			if (specs.sort().join(',') === allSpecs.sort().join(',')) {
 				displayText.push(`All ${className}s`);
 			} else {
@@ -27,6 +30,6 @@ export function processItems(items, wowClasses) {
 			}
 		}
 
-		return { ...item, displayText: displayText.join(', ') };
+		return { ...item, count, displayText: displayText.join(', ') };
 	});
 }

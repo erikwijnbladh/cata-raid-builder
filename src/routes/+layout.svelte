@@ -4,20 +4,14 @@
 	import { initializeStores } from '@skeletonlabs/skeleton';
 	import Footer from '../components/+footer.svelte';
 	initializeStores();
-	import { Toast, getToastStore } from '@skeletonlabs/skeleton';
-	import type { ToastSettings, ToastStore } from '@skeletonlabs/skeleton';
+	import { Toast } from '@skeletonlabs/skeleton';
 </script>
 
-<Toast />
+<Toast padding="p-7" />
 <AppShell scrollbarGutter="stable">
 	<svelte:fragment slot="header">
 		<AppBar class="border-b border-tertiary-800">
 			<svelte:fragment slot="lead">
-				<a class="btn btn-sm variant-ghost-surface" href="/">
-					<strong class="text-xl">Home</strong>
-				</a>
-			</svelte:fragment>
-			<svelte:fragment slot="trail">
 				<a
 					class="btn btn-sm variant-ghost-surface"
 					href="https://twitch.tv/yorks_"
@@ -50,6 +44,8 @@
 				>
 					Website
 				</a>
+			</svelte:fragment>
+			<svelte:fragment slot="trail">
 				<LightSwitch />
 			</svelte:fragment>
 		</AppBar>
