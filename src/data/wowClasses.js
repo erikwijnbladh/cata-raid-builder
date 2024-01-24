@@ -24,8 +24,12 @@ export const wowClasses = {
 				icon: 'https://wowmeta.com/assets/icons/specs/druid-balance.jpg'
 			},
 			{
-				name: 'Feral',
+				name: 'Feral (Cat)',
 				icon: 'https://wowmeta.com/assets/icons/specs/druid-feral.jpg'
+			},
+			{
+				name: 'Feral (Bear)',
+				icon: 'https://wowmeta.com/assets/icons/specs/druid-guardian.jpg'
 			},
 			{
 				name: 'Restoration',

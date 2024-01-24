@@ -7,6 +7,11 @@
 	import { cooldowns as importedCooldowns } from '../data/cooldowns.js';
 	import { debuffs as importedDebuffs } from '../data/debuffs.js';
 	import { processItems } from '../utils/utils.js';
+	import { SlideToggle } from '@skeletonlabs/skeleton';
+	import { onMount } from 'svelte';
+
+	import Tooltip from '../components/+Tooltip.svelte';
+	import TooltipContent from '../components/+TooltipContent.svelte';
 
 	const toastStore = getToastStore();
 
@@ -15,14 +20,24 @@
 	let cooldowns = importedCooldowns;
 	let debuffs = importedDebuffs;
 
+	let combinedOptions = [];
+	for (const className in wowClasses) {
+		wowClasses[className].specs.forEach((spec) => {
+			combinedOptions.push({
+				icon: spec.icon,
+				character: `${className} - ${spec.name}`
+			});
+		});
+	}
+
+	let raidSetup = Array.from({ length: 10 }, () => ({ name: '', classSpec: null }));
+	$: allClassSpecsNull = raidSetup.every((player) => player.classSpec === null);
 	const copyRaidSetup = async () => {
 		// Check if every classSpec in raidSetup is null
-		const allClassSpecsNull = raidSetup.every((player) => player.classSpec === null);
 
 		if (allClassSpecsNull) {
-			// Optionally, you can handle the case when all classSpecs are null here.
 			const toastSettings: ToastSettings = {
-				message: 'Add atleast one character',
+				message: 'Add at least one character',
 				background: 'variant-filled-error',
 				hideDismiss: true,
 				timeout: 3000
@@ -31,28 +46,23 @@
 			return;
 		}
 
-		const raidSetupString = JSON.stringify(raidSetup, null, 2);
+		// Transform raidSetup to only include name and character
+		const simplifiedRaidSetup = raidSetup.map((player) => ({
+			name: player.name,
+			character: player.classSpec ? player.classSpec.character : null
+		}));
+
+		const raidSetupString = JSON.stringify(simplifiedRaidSetup, null, 2);
 		await navigator.clipboard.writeText(raidSetupString);
+
 		const toastSettings: ToastSettings = {
 			message: 'Raid setup copied to clipboard!',
-			background: 'variant-filled-primary',
+			background: 'variant-filled-success',
 			hideDismiss: true,
 			timeout: 3000
 		};
 		toastStore.trigger(toastSettings);
 	};
-
-	let combinedOptions = [];
-	for (const className in wowClasses) {
-		wowClasses[className].specs.forEach((spec) => {
-			combinedOptions.push({
-				icon: spec.icon,
-				label: `${className} - ${spec.name}`
-			});
-		});
-	}
-
-	let raidSetup = Array.from({ length: 10 }, () => ({ name: '', classSpec: null }));
 
 	function clearRaid() {
 		importedRaidSetupJson = '';
@@ -78,10 +88,20 @@
 			if (Array.isArray(importedRaidSetup) && importedRaidSetup.length === raidSetup.length) {
 				raidSetup = importedRaidSetup.map((player) => {
 					const matchingSpec = combinedOptions.find(
-						(option) => option.label === player.classSpec?.label
+						(option) => option.character === player.character
 					);
-					return { ...player, classSpec: matchingSpec || null };
+					return {
+						name: player.name,
+						classSpec: matchingSpec || null
+					};
 				});
+				const toastSettings: ToastSettings = {
+					message: 'Raid setup imported!',
+					background: 'variant-filled-success',
+					hideDismiss: true,
+					timeout: 3000
+				};
+				toastStore.trigger(toastSettings);
 			} else {
 				alert(
 					'Invalid raid setup format. Please ensure the imported data matches the expected structure.'
@@ -92,38 +112,106 @@
 			alert('Invalid JSON format. Please check your data.');
 		}
 	}
-	import Tooltip from '../components/+Tooltip.svelte';
-	import TooltipContent from '../components/+TooltipContent.svelte';
+
+	async function sendToDiscord() {
+		const response = await fetch('/api/sendToDiscord', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				raidSetup,
+				webhookUrl: webHook // Include the webhook URL here
+			})
+		});
+
+		if (response.ok) {
+			const toastSettings: ToastSettings = {
+				message: 'Raid setup sent to discord!',
+				background: 'variant-filled-success',
+				hideDismiss: true,
+				timeout: 3000
+			};
+			toastStore.trigger(toastSettings);
+		} else {
+			console.error('Failed to send message to server endpoint', response);
+		}
+	}
+
+	let webHook = '';
+	let storedWebhook = ''; // Variable to hold the webhook from local storage
+
+	// Fetch the stored webhook on component mount
+	onMount(() => {
+		storedWebhook = localStorage.getItem('discordWebhook') || '';
+		webHook = storedWebhook; // Optional: Initialize webHook with the stored value
+	});
+
+	// Function to save webhook
+	function saveWebhook() {
+		localStorage.setItem('discordWebhook', webHook);
+		storedWebhook = webHook; // Update storedWebhook after saving
+		// ... rest of the code ...
+	}
+
+	// Reactive statement to determine if the save button should be disabled
+	$: isSaveDisabled = !webHook || webHook === storedWebhook;
+
+	function toggleRaidSize() {
+		if (raidSetup.length === 10) {
+			raidSetup = Array.from({ length: 25 }, () => ({ name: '', classSpec: null }));
+		} else {
+			raidSetup = Array.from({ length: 10 }, () => ({ name: '', classSpec: null }));
+		}
+		raidSetup = raidSetup; // explicitly reassign to trigger reactivity
+	}
+	let gridClass = 'grid-cols-2'; // default class
+	let avatarClass = 'w-11 h-10'; // default class
+
+	// Reactive statement to update gridClass
+	$: gridClass = raidSetup.length === 25 ? 'grid-cols-5 grid-rows-5' : 'grid-cols-2';
 </script>
 
 <div class="flex flex-col md:flex-row mx-4 md:mx-20 justify-between gap-20">
 	<div class="w-full">
-		<form class="gap-8 grid grid-cols-2">
+		<div class="flex flex-row font-semibold gap-2 pb-6">
+			<p>10man</p>
+			<SlideToggle
+				on:change={toggleRaidSize}
+				name="slider"
+				background="bg-primary-200"
+				active="bg-primary-500"
+				size="sm"
+			/>
+			<p>25man</p>
+		</div>
+
+		<form class="gap-8 grid {gridClass}">
 			{#each raidSetup as player, index}
 				<div class="flex flex-col relative gap-1">
-					<div class="flex flex-row">
+					<div class="flex flex-row justify-between gap-2">
+						<Avatar
+							src={selectedIcons[index]}
+							alt="Class Icon"
+							width="w-11"
+							rounded="rounded-full"
+							background="bg-surface-300-600-token"
+							class="hidden md:flex my-auto"
+							fallback="null"
+							initials=""
+						/>
 						<input
 							type="text"
-							class="input w-full md:w-1/2 font-bold"
+							class="input w-full font-bold my-auto h-8 text-sm"
 							placeholder={`Player ${index + 1} name`}
 							bind:value={player.name}
 							on:input={(e) => handleNameChange(index, e)}
 						/>
-						<Avatar
-							src={selectedIcons[index]}
-							alt="Class Icon"
-							width="w-10 h-10"
-							rounded="rounded-full"
-							background="bg-surface-300-600-token"
-							class="hidden md:flex ml-1"
-							fallback="null"
-							initials=""
-						/>
 					</div>
-					<select class="select" bind:value={player.classSpec}>
+					<select class="select h-9 pl-3 text-sm" bind:value={player.classSpec}>
 						<option value={null}>Select Class</option>
 						{#each combinedOptions as option}
-							<option value={option}>{option.label}</option>
+							<option value={option}>{option.character}</option>
 						{/each}
 					</select>
 				</div>
@@ -131,26 +219,53 @@
 		</form>
 		<div class="flex flex-col md:flex-row">
 			<div class="flex flex-col w-full my-4 gap-4">
-				<div class="flex flex-row gap-4 border-b pb-4">
-					<button on:click={copyRaidSetup} type="button" class="btn variant-filled"
+				<div class="flex flex-row justify-center gap-4 border-b pb-4">
+					<button on:click={copyRaidSetup} type="button" class="btn btn-sm variant-filled"
 						>Copy Raid</button
 					>
-					<button on:click={clearRaid} type="button" class="btn variant-filled">Reset Raid</button>
+					<button on:click={clearRaid} type="button" class="btn btn-sm variant-filled"
+						>Reset Raid</button
+					>
+					<button
+						on:click={sendToDiscord}
+						disabled={!webHook || allClassSpecsNull}
+						type="button"
+						class="btn btn-sm variant-filled">Send to Discord</button
+					>
 				</div>
 				<div class="flex flex-row gap-2">
 					<input
 						bind:value={importedRaidSetupJson}
 						type="text"
-						class="input w-1/2 font-bold"
+						class="input w-1/2 h-8 my-auto font-bold"
 						placeholder="Paste raid data here"
 					/>
-					<button on:click={importRaidSetup} type="button" class="btn variant-filled"
-						>Import Raid</button
+					<button
+						on:click={importRaidSetup}
+						disabled={!importedRaidSetupJson}
+						type="button"
+						class="btn btn-sm variant-filled">Import Raid</button
 					>
+				</div>
+				<div class="flex flex-row gap-2">
+					<input
+						bind:value={webHook}
+						type="password"
+						class="input w-1/2 h-8 my-auto font-bold"
+						placeholder="Paste webhook here"
+					/>
+					<button
+						on:click={saveWebhook}
+						disabled={isSaveDisabled}
+						type="button"
+						class="btn btn-sm variant-filled"
+					>
+						{webHook ? 'Save webhook' : 'Add a discord webhook'}
+					</button>
 				</div>
 			</div>
 
-			<div class="flex flex-col gap-4 mt-10 w-full">
+			<div class="flex flex-col gap-4 mt-6 w-full">
 				<span class="text-center text-2xl"> Tokens </span>
 				<div class="flex flex-row justify-center gap-4 mt-4">
 					{#each tokens as token}

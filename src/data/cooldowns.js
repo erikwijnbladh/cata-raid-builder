@@ -3,7 +3,8 @@ export const cooldowns = [
 		name: 'Combat Resurrection',
 		providers: [
 			'Druid - Balance',
-			'Druid - Feral',
+			'Druid - Feral (Cat)',
+			'Druid - Feral (Bear)',
 			'Druid - Restoration',
 			'Warlock - Affliction',
 			'Warlock - Demonology',
@@ -83,17 +84,32 @@ export const cooldowns = [
 	},
 	{
 		name: 'Innervate',
-		providers: ['Druid - Balance', 'Druid - Restoration', 'Druid - Feral'],
+		providers: [
+			'Druid - Balance',
+			'Druid - Restoration',
+			'Druid - Feral (Cat)',
+			'Druid - Feral (Bear)'
+		],
 		count: 0
 	},
 	{
 		name: 'Tranquility',
-		providers: ['Druid - Balance', 'Druid - Restoration', 'Druid - Feral'],
+		providers: [
+			'Druid - Balance',
+			'Druid - Restoration',
+			'Druid - Feral (Cat)',
+			'Druid - Feral (Bear)'
+		],
 		count: 0
 	},
 	{
 		name: 'Stampeding Roar',
-		providers: ['Druid - Balance', 'Druid - Restoration', 'Druid - Feral'],
+		providers: [
+			'Druid - Balance',
+			'Druid - Restoration',
+			'Druid - Feral (Cat)',
+			'Druid - Feral (Bear)'
+		],
 		count: 0
 	},
 	{

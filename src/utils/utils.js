@@ -4,8 +4,8 @@ export function processItems(items, wowClasses, raidSetup) {
 		item.providerIcons = {};
 		// Count how many times each item is provided by the raid setup
 		const count = raidSetup.reduce((acc, player) => {
-			const playerSpecLabel = player.classSpec ? `${player.classSpec.label}` : '';
-			return acc + (item.providers.includes(playerSpecLabel) ? 1 : 0);
+			const playerCharacter = player.classSpec ? `${player.classSpec.character}` : '';
+			return acc + (item.providers.includes(playerCharacter) ? 1 : 0);
 		}, 0);
 
 		// Group specializations by class
@@ -20,7 +20,6 @@ export function processItems(items, wowClasses, raidSetup) {
 
 		// Determine the display text for each item
 		let displayText = [];
-		let iconURL = ''; // variable to hold the icon URL
 
 		for (const [className, specs] of Object.entries(classSpecificItems)) {
 			const classInfo = wowClasses[className];

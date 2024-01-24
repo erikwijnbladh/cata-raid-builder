@@ -8,7 +8,8 @@ export const debuffs = [
 			'Rogue - Assassination',
 			'Rogue - Combat',
 			'Rogue - Subtlety',
-			'Druid - Feral',
+			'Druid - Feral (Cat)',
+			'Druid - Feral (Bear)',
 			'Druid - Restoration',
 			'Druid - Balance'
 		],
@@ -16,7 +17,12 @@ export const debuffs = [
 	},
 	{
 		name: '+30% Bleed Damage',
-		providers: ['Rogue - Subtlety', 'Druid - Feral', 'Warrior - Arms'],
+		providers: [
+			'Rogue - Subtlety',
+			'Druid - Feral (Cat)',
+			'Druid - Feral (Bear)',
+			'Warrior - Arms'
+		],
 		count: 0
 	},
 	{ name: '+5% Spell Crit', providers: ['Mage - Fire', 'Warlock - Destruction'], count: 0 },
@@ -28,7 +34,8 @@ export const debuffs = [
 			'Death Knight - Blood',
 			'Paladin - Protection',
 			'Warrior - Protection',
-			'Druid - Feral'
+			'Druid - Feral (Cat)',
+			'Druid - Feral (Bear)'
 		],
 		count: 0
 	},
@@ -73,7 +80,8 @@ export const debuffs = [
 			'Warrior - Protection',
 			'Paladin - Protection',
 			'Death Knight - Blood',
-			'Druid - Feral',
+			'Druid - Feral (Cat)',
+			'Druid - Feral (Bear)',
 			'Warlock - Demonology',
 			'Warlock - Destruction',
 			'Warlock - Affliction'

@@ -12,7 +12,13 @@ export const buffs = [
 	},
 	{
 		name: '+5% Crit',
-		providers: ['Druid - Feral', 'Shaman - Elemental', 'Warrior - Fury', 'Rogue - Subtlety'],
+		providers: [
+			'Druid - Feral (Cat)',
+			'Druid - Feral (Bear)',
+			'Shaman - Elemental',
+			'Warrior - Fury',
+			'Rogue - Subtlety'
+		],
 		count: 0
 	},
 	{
@@ -63,7 +69,8 @@ export const buffs = [
 	{
 		name: '+5% Stats',
 		providers: [
-			'Druid - Feral',
+			'Druid - Feral (Cat)',
+			'Druid - Feral (Bear)',
 			'Druid - Balance',
 			'Druid - Restoration',
 			'Paladin - Holy',
@@ -131,7 +138,8 @@ export const buffs = [
 			'Priest - Holy',
 			'Priest - Shadow',
 			'Druid - Balance',
-			'Druid - Feral',
+			'Druid - Feral (Cat)',
+			'Druid - Feral (Bear)',
 			'Druid - Restoration',
 			'Hunter - Beast Mastery',
 			'Hunter - Marksmanship',
