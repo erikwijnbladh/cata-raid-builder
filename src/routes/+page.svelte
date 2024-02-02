@@ -78,8 +78,6 @@
 	$: cooldowns = processItems(importedCooldowns, wowClasses, raidSetup);
 	$: tokens = processItems(importedTokens, wowClasses, raidSetup);
 
-	$: selectedIcons = raidSetup.map((player) => (player.classSpec ? player.classSpec.icon : null));
-
 	let importedRaidSetupJson = '';
 
 	function importRaidSetup() {
@@ -135,10 +133,17 @@
 			toastStore.trigger(toastSettings);
 		} else {
 			console.error('Failed to send message to server endpoint', response);
+			const toastSettings: ToastSettings = {
+				message: 'Something went wrong, make sure you have added a valid webhook',
+				background: 'variant-filled-success',
+				hideDismiss: true,
+				timeout: 3000
+			};
+			toastStore.trigger(toastSettings);
 		}
 	}
 
-	let webHook = '';
+	$: webHook = '';
 	let storedWebhook = ''; // Variable to hold the webhook from local storage
 
 	// Fetch the stored webhook on component mount
@@ -150,8 +155,27 @@
 	// Function to save webhook
 	function saveWebhook() {
 		localStorage.setItem('discordWebhook', webHook);
-		storedWebhook = webHook; // Update storedWebhook after saving
-		// ... rest of the code ...
+		storedWebhook = webHook;
+		const toastSettings: ToastSettings = {
+			message: 'Webhook saved',
+			background: 'variant-filled-success',
+			hideDismiss: true,
+			timeout: 3000
+		};
+		toastStore.trigger(toastSettings);
+	}
+
+	// Function to delete webhook
+	function deleteWebhook() {
+		localStorage.removeItem('discordWebhook');
+		const toastSettings: ToastSettings = {
+			message: 'Webhook removed',
+			background: 'variant-filled-success',
+			hideDismiss: true,
+			timeout: 3000
+		};
+		toastStore.trigger(toastSettings);
+		webHook = '';
 	}
 
 	// Reactive statement to determine if the save button should be disabled
@@ -166,60 +190,48 @@
 		raidSetup = raidSetup; // explicitly reassign to trigger reactivity
 	}
 	let gridClass = 'grid-cols-2'; // default class
-	let avatarClass = 'w-11 h-10'; // default class
 
 	// Reactive statement to update gridClass
-	$: gridClass = raidSetup.length === 25 ? 'grid-cols-5 grid-rows-5' : 'grid-cols-2';
+	$: gridClass = raidSetup.length === 25 ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2';
+	import ClassPicker from '../components/+ClassPicker.svelte';
+	import Popover from '../components/+Popover.svelte';
+	let openPickerIndex = null; // Tracks which ClassPicker is open
+
+	// Function to toggle the ClassPicker open state
+	function togglePicker(index) {
+		if (openPickerIndex === index) {
+			openPickerIndex = null; // Close the current picker if it's already open
+		} else {
+			openPickerIndex = index; // Open the clicked picker and close others
+		}
+	}
+	$: raidGroups = raidSetup.reduce((acc, player, index) => {
+		const groupIndex = Math.floor(index / 5); // Calculate which group the player belongs to
+		if (!acc[groupIndex]) {
+			acc[groupIndex] = []; // Initialize the group if it doesn't exist
+		}
+		acc[groupIndex].push(player); // Add the player to the correct group
+		return acc;
+	}, []);
 </script>
 
 <div class="flex flex-col md:flex-row mx-4 md:mx-20 justify-between gap-20">
 	<div class="w-full">
-		<div class="flex flex-row font-semibold gap-2 pb-6">
-			<p>10man</p>
-			<SlideToggle
-				on:change={toggleRaidSize}
-				name="slider"
-				background="bg-primary-200"
-				active="bg-primary-500"
-				size="sm"
-			/>
-			<p>25man</p>
-		</div>
+		<div class="flex flex-row justify-between font-semibold gap-2 pb-6">
+			<div class="flex flex-row gap-2">
+				<p>10man</p>
+				<SlideToggle
+					on:change={toggleRaidSize}
+					name="slider"
+					background="bg-surface-300"
+					active="bg-surface-600"
+					size="sm"
+				/>
+				<p>25man</p>
+			</div>
 
-		<form class="gap-8 grid {gridClass}">
-			{#each raidSetup as player, index}
-				<div class="flex flex-col relative gap-1">
-					<div class="flex flex-row justify-between gap-2">
-						<Avatar
-							src={selectedIcons[index]}
-							alt="Class Icon"
-							width="w-11"
-							rounded="rounded-full"
-							background="bg-surface-300-600-token"
-							class="hidden md:flex my-auto"
-							fallback="null"
-							initials=""
-						/>
-						<input
-							type="text"
-							class="input w-full font-bold my-auto h-8 text-sm"
-							placeholder={`Player ${index + 1} name`}
-							bind:value={player.name}
-							on:input={(e) => handleNameChange(index, e)}
-						/>
-					</div>
-					<select class="select h-9 pl-3 text-sm" bind:value={player.classSpec}>
-						<option value={null}>Select Class</option>
-						{#each combinedOptions as option}
-							<option value={option}>{option.character}</option>
-						{/each}
-					</select>
-				</div>
-			{/each}
-		</form>
-		<div class="flex flex-col md:flex-row">
-			<div class="flex flex-col w-full my-4 gap-4">
-				<div class="flex flex-row justify-center gap-4 border-b pb-4">
+			<Popover>
+				<div class="flex flex-col gap-4 p-4">
 					<button on:click={copyRaidSetup} type="button" class="btn btn-sm variant-filled"
 						>Copy Raid</button
 					>
@@ -232,7 +244,17 @@
 						type="button"
 						class="btn btn-sm variant-filled">Send to Discord</button
 					>
+					<button
+						on:click={deleteWebhook}
+						disabled={!webHook || !localStorage.getItem('discordWebhook')}
+						type="button"
+						class="btn btn-sm variant-filled">Remove Webhook</button
+					>
 				</div>
+			</Popover>
+		</div>
+		<div class="flex flex-col md:flex-row">
+			<div class="flex flex-col w-full my-4 gap-4 border-b pb-4">
 				<div class="flex flex-row gap-2">
 					<input
 						bind:value={importedRaidSetupJson}
@@ -262,31 +284,64 @@
 					>
 						{webHook ? 'Save webhook' : 'Add a discord webhook'}
 					</button>
-				</div>
-			</div>
-
-			<div class="flex flex-col gap-4 mt-6 w-full">
-				<span class="text-center text-2xl"> Tokens </span>
-				<div class="flex flex-row justify-center gap-4 mt-4">
-					{#each tokens as token}
-						<div>
-							{token.name}: {token.count}
-						</div>
-					{/each}
+					<Tooltip>
+						<span class="badge variant-filled mt-1 px-2.5">?</span>
+						<TooltipContent slot="content">
+							<div class="card rounded-lg py-2 px-3">
+								<p class="text-sm mb-2">
+									This webhook is stored in localStorage and used to send your raid setup to your
+									discord server. <br />
+									You can read about webhooks
+									<a
+										class="underline"
+										href="https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks"
+										>here</a
+									>
+								</p>
+							</div>
+						</TooltipContent>
+					</Tooltip>
 				</div>
 			</div>
 		</div>
+		<form class="gap-8 grid {gridClass}">
+			{#each raidGroups as group, groupIndex}
+				<div class="space-y-2">
+					<h3>Group {groupIndex + 1}</h3>
+					{#each group as player, index}
+						<div class="flex flex-col relative space-y-8">
+							<div class="flex flex-row justify-between gap-2">
+								<ClassPicker
+									bind:value={player.classSpec}
+									options={combinedOptions}
+									isOpen={openPickerIndex === groupIndex * 5 + index}
+									on:toggle={() => togglePicker(groupIndex * 5 + index)}
+									on:change={(e) => (player.classSpec = e.detail.value)}
+								/>
+								<input
+									type="text"
+									class="input w-full font-bold my-auto h-8 text-sm"
+									placeholder={`Player ${index + 1} name`}
+									bind:value={player.name}
+									on:input={(e) => handleNameChange(groupIndex * 5 + index, e)}
+								/>
+							</div>
+						</div>
+					{/each}
+				</div>
+			{/each}
+		</form>
 	</div>
-	<div class="card p-4 w-full flex flex-col justify-between">
-		<Accordion>
+	<div class="w-full">
+		<Accordion class="select-none card p-4  flex flex-col justify-between">
 			<AccordionItem open>
 				<svelte:fragment slot="summary">Buffs</svelte:fragment>
 				<svelte:fragment slot="content">
 					<div class="grid grid-cols-2 md:grid-cols-3 gap-8 py-4 relative">
 						{#each buffs as buff}
-							<div class="cursor-pointer">
+							<div>
 								<Tooltip>
-									<TooltipContent>
+									<TooltipContent slot="content">
 										<div class="card rounded-lg py-2 px-3">
 											<p class="text-sm mb-2">Providers:</p>
 											{#each Object.entries(buff.providerIcons) as [provider, iconURL]}
@@ -318,9 +373,9 @@
 				<svelte:fragment slot="content">
 					<div class="grid grid-cols-2 md:grid-cols-3 gap-8 py-4">
 						{#each debuffs as debuff}
-							<div class="cursor-pointer">
+							<div>
 								<Tooltip>
-									<TooltipContent>
+									<TooltipContent slot="content">
 										<div class="card rounded-lg py-2 px-3">
 											<p class="text-sm mb-2">Providers:</p>
 											{#each Object.entries(debuff.providerIcons) as [provider, iconURL]}
@@ -352,9 +407,9 @@
 				<svelte:fragment slot="content">
 					<div class="grid grid-cols-2 md:grid-cols-3 gap-8 py-4">
 						{#each cooldowns as cooldown}
-							<div class="cursor-pointer">
+							<div>
 								<Tooltip>
-									<TooltipContent>
+									<TooltipContent slot="content">
 										<div class="card rounded-lg py-2 px-3">
 											<p class="text-sm mb-2">Providers:</p>
 											{#each Object.entries(cooldown.providerIcons) as [provider, iconURL]}
@@ -382,6 +437,16 @@
 				</svelte:fragment>
 			</AccordionItem>
 		</Accordion>
+		<div class="flex flex-col gap-4 mt-6 w-full">
+			<span class="text-center text-2xl"> Tokens </span>
+			<div class="flex flex-row justify-center gap-4">
+				{#each tokens as token}
+					<div>
+						{token.name}: {token.count}
+					</div>
+				{/each}
+			</div>
+		</div>
 	</div>
 </div>
 
